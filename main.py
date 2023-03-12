@@ -19,7 +19,8 @@ website_html = response.text
 soup = BeautifulSoup(website_html, "html.parser")
 
 song_names = soup.find_all(name="h3", id="title-of-a-story")
-song_names = [song.getText().strip("\n") for song in song_names[3:103]]
+song_names = [song.getText().strip("\n\t") for song in song_names[3:103]]
+# print(song_names)
 
 sp = spotipy.Spotify(
     auth_manager=SpotifyOAuth(
@@ -32,20 +33,20 @@ sp = spotipy.Spotify(
     )
 )
 user_id = sp.current_user()["id"]
-print(user_id)
 song_uris = []
 
 for song in song_names:
     result = sp.search(q=f"track:{song} year: {year}", type="track")
-    # print(result)
     try:
         uri = result["tracks"]["items"][0]["uri"]
     except IndexError:
         pass
     else:
-        song_uris.append(uri)
+        if uri not in song_uris:
+            song_uris.append(uri)
 
+print(song_uris)
 playlist = sp.user_playlist_create(
-    user=user_id, name=f"{date} Billboard 100", public=False)
+    user=user_id, name=f"{date} Playlist for my love ❤", public=False)
 sp.user_playlist_add_tracks(
     user=user_id, playlist_id=playlist["id"], tracks=song_uris)
